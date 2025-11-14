@@ -9,11 +9,11 @@ class Deployment extends Model
 {
     protected $fillable = [
         'task_template_id',
-        'environment_id',
         'user_id',
         'inventory_ids',
         'status',
-        'console_output',
+        'command_input',
+        'command_output',
         'started_at',
         'completed_at',
         'exit_code',
@@ -29,11 +29,6 @@ class Deployment extends Model
     public function taskTemplate(): BelongsTo
     {
         return $this->belongsTo(TaskTemplate::class);
-    }
-
-    public function environment(): BelongsTo
-    {
-        return $this->belongsTo(Environment::class);
     }
 
     public function user(): BelongsTo

@@ -3,15 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\KeystoreResource\Pages;
-use App\Filament\Resources\KeystoreResource\RelationManagers;
 use App\Models\Keystore;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class KeystoreResource extends Resource
 {
@@ -51,8 +48,6 @@ class KeystoreResource extends Resource
                             ->label('Private Key')
                             ->rows(10)
                             ->columnSpanFull()
-                            ->password()
-                            ->revealable()
                             ->helperText('Paste your SSH private key here'),
                         Forms\Components\Textarea::make('public_key')
                             ->label('Public Key')

@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\DeploymentResource\Pages;
-use App\Filament\Resources\DeploymentResource\RelationManagers;
 use App\Jobs\ExecuteAnsibleDeployment;
 use App\Models\Deployment;
 use App\Models\Inventory;
@@ -12,8 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\HtmlString;
 
 class DeploymentResource extends Resource
 {
@@ -35,42 +33,102 @@ class DeploymentResource extends Resource
                             ->relationship('taskTemplate', 'name')
                             ->required()
                             ->searchable()
-                            ->preload(),
-                        Forms\Components\Select::make('environment_id')
-                            ->relationship('environment', 'name')
-                            ->searchable()
-                            ->preload(),
-                        Forms\Components\Select::make('inventory_ids')
+                            ->preload()
+                            ->disabled(fn ($livewire) => $livewire instanceof Pages\EditDeployment),
+                        Forms\Components\CheckboxList::make('inventory_ids')
                             ->label('Servers')
-                            ->multiple()
-                            ->options(Inventory::where('is_active', true)->pluck('name', 'id'))
-                            ->searchable()
+                            ->options(function () {
+                                $options = ['all' => 'All Servers'];
+                                $inventories = Inventory::where('is_active', true)->pluck('name', 'id')->toArray();
+
+                                return $options + $inventories;
+                            })
+                            ->columns(2)
                             ->required()
-                            ->helperText('Select the servers to run this deployment on'),
+                            ->disabled(fn ($livewire) => $livewire instanceof Pages\EditDeployment)
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                // If 'all' is selected, deselect individual servers
+                                if (is_array($state) && in_array('all', $state)) {
+                                    $set('inventory_ids', ['all']);
+                                }
+                            })
+                            ->reactive(),
                     ])
-                    ->columns(1),
+                    ->columns(2)
+                    ->compact(),
                 Forms\Components\Section::make('Execution Details')
                     ->schema([
                         Forms\Components\Placeholder::make('status')
-                            ->content(fn (?Deployment $record) => $record?->status ?? 'Not started'),
+                            ->label('Status')
+                            ->content(function (?Deployment $record) {
+                                if (! $record) {
+                                    return new HtmlString('<span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-500/20 text-gray-700 ring-1 ring-gray-500">N/A</span>');
+                                }
+
+                                $status = $record->status ?? 'pending';
+                                $styles = [
+                                    'pending' => 'bg-gray-500/20 text-gray-700 ring-gray-500',
+                                    'running' => 'bg-blue-500/20 text-blue-700 ring-blue-500 animate-pulse',
+                                    'success' => 'bg-green-500/20 text-green-700 ring-green-500',
+                                    'failed' => 'bg-red-500/20 text-red-700 ring-red-500',
+                                ];
+
+                                $class = $styles[$status] ?? 'bg-gray-500/20 text-gray-700 ring-gray-500';
+                                $label = ucfirst($status);
+
+                                return new HtmlString("<span class=\"inline-flex items-center px-2 py-1 rounded text-xs font-medium ring-1 {$class}\">{$label}</span>");
+                            }),
                         Forms\Components\Placeholder::make('started_at')
                             ->content(fn (?Deployment $record) => $record?->started_at?->diffForHumans() ?? 'N/A'),
-                        Forms\Components\Placeholder::make('completed_at')
-                            ->content(fn (?Deployment $record) => $record?->completed_at?->diffForHumans() ?? 'N/A'),
+                        Forms\Components\Placeholder::make('duration')
+                            ->label('Duration')
+                            ->content(function (?Deployment $record) {
+                                if (! $record?->started_at || ! $record?->completed_at) {
+                                    return '—';
+                                }
+                                $seconds = $record->started_at->diffInSeconds($record->completed_at);
+                                $h = intdiv($seconds, 3600);
+                                $m = intdiv($seconds % 3600, 60);
+                                $s = $seconds % 60;
+                                $parts = [];
+                                if ($h) {
+                                    $parts[] = $h.'h';
+                                }
+                                if ($m) {
+                                    $parts[] = $m.'m';
+                                }
+                                $parts[] = $s.'s';
+
+                                return implode(' ', $parts);
+                            }),
                         Forms\Components\Placeholder::make('exit_code')
                             ->content(fn (?Deployment $record) => $record?->exit_code ?? 'N/A'),
                     ])
-                    ->columns(2)
+                    ->columns(4)
+                    ->compact()
                     ->hidden(fn (?Deployment $record) => $record === null),
-                Forms\Components\Section::make('Console Output')
+                Forms\Components\Section::make('Command Input')
                     ->schema([
-                        Forms\Components\Textarea::make('console_output')
+                        Forms\Components\Textarea::make('command_input')
                             ->label('')
-                            ->rows(15)
+                            ->rows(10)
                             ->disabled()
                             ->columnSpanFull(),
                     ])
-                    ->hidden(fn (?Deployment $record) => $record === null || empty($record->console_output)),
+                    ->collapsed()
+                    ->compact()
+                    ->hidden(fn (?Deployment $record) => $record === null || empty($record->command_input)),
+                Forms\Components\Section::make('Command Output')
+                    ->schema([
+                        Forms\Components\Textarea::make('command_output')
+                            ->label('')
+                            ->rows(20)
+                            ->disabled()
+                            ->columnSpanFull()
+                            ->live(onBlur: false),
+                    ])
+                    ->compact()
+                    ->hidden(fn (?Deployment $record) => $record === null || empty($record->command_output)),
             ]);
     }
 
@@ -85,11 +143,7 @@ class DeploymentResource extends Resource
                     ->label('Task')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('environment.name')
-                    ->label('Environment')
-                    ->searchable()
-                    ->sortable()
-                    ->placeholder('None'),
+                // Removed environment column per request
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('User')
                     ->searchable()
@@ -107,10 +161,28 @@ class DeploymentResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('completed_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(),
+                Tables\Columns\TextColumn::make('duration')
+                    ->label('Duration')
+                    ->state(function (Deployment $record) {
+                        if (! $record->started_at || ! $record->completed_at) {
+                            return '—';
+                        }
+                        $seconds = $record->started_at->diffInSeconds($record->completed_at);
+                        $h = intdiv($seconds, 3600);
+                        $m = intdiv($seconds % 3600, 60);
+                        $s = $seconds % 60;
+                        $parts = [];
+                        if ($h) {
+                            $parts[] = $h.'h';
+                        }
+                        if ($m) {
+                            $parts[] = $m.'m';
+                        }
+                        $parts[] = $s.'s';
+
+                        return implode(' ', $parts);
+                    })
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

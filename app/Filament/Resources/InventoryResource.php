@@ -3,15 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\InventoryResource\Pages;
-use App\Filament\Resources\InventoryResource\RelationManagers;
 use App\Models\Inventory;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class InventoryResource extends Resource
 {
@@ -67,14 +64,7 @@ class InventoryResource extends Resource
                             ->default(true),
                     ])
                     ->columns(2),
-                Forms\Components\Section::make('Variables')
-                    ->schema([
-                        Forms\Components\KeyValue::make('variables')
-                            ->keyLabel('Variable Name')
-                            ->valueLabel('Value')
-                            ->addActionLabel('Add Variable')
-                            ->columnSpanFull(),
-                    ]),
+                // Removed Variables section per request
             ]);
     }
 
@@ -114,13 +104,8 @@ class InventoryResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->bulkActions([]);
     }
 
     public static function getRelations(): array

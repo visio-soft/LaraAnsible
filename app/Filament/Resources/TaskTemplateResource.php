@@ -3,15 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TaskTemplateResource\Pages;
-use App\Filament\Resources\TaskTemplateResource\RelationManagers;
 use App\Models\TaskTemplate;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TaskTemplateResource extends Resource
 {
@@ -59,15 +56,7 @@ class TaskTemplateResource extends Resource
                             ->columnSpanFull()
                             ->helperText('Or paste the playbook content directly here'),
                     ]),
-                Forms\Components\Section::make('Extra Variables')
-                    ->schema([
-                        Forms\Components\KeyValue::make('extra_vars')
-                            ->label('Variables')
-                            ->keyLabel('Variable Name')
-                            ->valueLabel('Value')
-                            ->addActionLabel('Add Variable')
-                            ->columnSpanFull(),
-                    ]),
+                // Removed Extra Variables section per request
             ]);
     }
 

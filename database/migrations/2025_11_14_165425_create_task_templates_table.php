@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->string('playbook_path');
+            $table->string('playbook_path')->nullable();
             $table->text('playbook_content')->nullable();
             $table->json('extra_vars')->nullable();
             $table->string('type')->default('playbook'); // playbook, adhoc

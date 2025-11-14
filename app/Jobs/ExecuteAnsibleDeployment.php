@@ -11,15 +11,19 @@ use Illuminate\Queue\SerializesModels;
 
 class ExecuteAnsibleDeployment implements ShouldQueue
 {
-    use Queueable, InteractsWithQueue, SerializesModels;
+    use InteractsWithQueue, Queueable, SerializesModels;
+
+    /**
+     * The number of seconds the job can run before timing out.
+     */
+    public int $timeout = 0; // No timeout
 
     /**
      * Create a new job instance.
      */
     public function __construct(
         public Deployment $deployment
-    ) {
-    }
+    ) {}
 
     /**
      * Execute the job.
@@ -36,7 +40,7 @@ class ExecuteAnsibleDeployment implements ShouldQueue
     {
         $this->deployment->update([
             'status' => 'failed',
-            'console_output' => $exception->getMessage(),
+            'command_output' => $exception->getMessage(),
             'completed_at' => now(),
         ]);
     }
