@@ -31,6 +31,24 @@ A modern Ansible management system built with Laravel 12, FilamentPHP 3, and Pos
 
 ## Installation
 
+### Quick Setup (Recommended)
+
+1. Clone the repository:
+```bash
+git clone https://github.com/visio-soft/ansiblephp.git
+cd ansiblephp
+```
+
+2. Run the setup script:
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+3. Follow the on-screen instructions to complete the setup.
+
+### Manual Installation
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/visio-soft/ansiblephp.git
