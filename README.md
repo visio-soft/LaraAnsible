@@ -2,7 +2,12 @@
 
 A modern Ansible management system built with Laravel 12, FilamentPHP 3, and PostgreSQL. Inspired by SemaphoreUI, this project provides a web-based interface for managing Ansible inventories, task templates, keystores, and deployments.
 
+![laraansible](https://github.com/user-attachments/assets/8c77e5d7-8d1d-421c-b5c1-dd4b6646f7a6)
+
+
 ## Features
+
+
 
 - **Inventory Management**: Define and manage Ansible servers (inventories)
 - **Task Templates**: Create reusable Ansible job templates
