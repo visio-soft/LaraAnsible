@@ -32,29 +32,18 @@ class TaskTemplateResource extends Resource
                         Forms\Components\Textarea::make('description')
                             ->rows(3)
                             ->columnSpanFull(),
-                        Forms\Components\Select::make('type')
-                            ->options([
-                                'playbook' => 'Playbook',
-                                'adhoc' => 'Ad-hoc Command',
-                            ])
-                            ->default('playbook')
-                            ->required(),
+                        // Removed 'type' field - only playbooks are supported now
                         Forms\Components\Toggle::make('is_active')
                             ->default(true),
                     ])
                     ->columns(2),
                 Forms\Components\Section::make('Playbook Configuration')
                     ->schema([
-                        Forms\Components\TextInput::make('playbook_path')
-                            ->label('Playbook Path')
-                            ->maxLength(255)
-                            ->placeholder('/path/to/playbook.yml')
-                            ->helperText('Absolute path to the playbook file on the server'),
                         Forms\Components\Textarea::make('playbook_content')
                             ->label('Playbook Content')
                             ->rows(10)
                             ->columnSpanFull()
-                            ->helperText('Or paste the playbook content directly here'),
+                            ->helperText('Paste the playbook content here'),
                     ]),
             ]);
     }
@@ -66,16 +55,6 @@ class TaskTemplateResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('type')
-                    ->badge()
-                    ->colors([
-                        'primary' => 'playbook',
-                        'success' => 'adhoc',
-                    ])
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('playbook_path')
-                    ->limit(50)
-                    ->searchable(),
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean()
                     ->sortable(),
@@ -89,11 +68,6 @@ class TaskTemplateResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('type')
-                    ->options([
-                        'playbook' => 'Playbook',
-                        'adhoc' => 'Ad-hoc',
-                    ]),
                 Tables\Filters\TernaryFilter::make('is_active'),
             ])
             ->actions([
