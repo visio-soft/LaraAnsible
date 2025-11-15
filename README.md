@@ -202,12 +202,6 @@ The plugin creates the following database tables:
 
 ## Development
 
-### Testing
-
-\`\`\`bash
-composer test
-\`\`\`
-
 ### Code Formatting
 
 \`\`\`bash
