@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "visiosoft/laraansible",
+    "name": "visio/laraansible",
     "type": "library",
     "description": "A FilamentPHP 3 plugin for managing Ansible inventories, task templates, and deployments.",
     "keywords": ["laravel", "filament", "ansible", "plugin", "deployment"],
