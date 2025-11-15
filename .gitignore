@@ -10,3 +10,6 @@
 /vendor
 Thumbs.db
 composer.lock
+/public/css/filament/*
+storage/app/ansible/*
+storage/framework/views/*

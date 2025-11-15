@@ -16,4 +16,10 @@ class EditDeployment extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function getFormActions(): array
+    {
+        // Remove Save/Cancel actions on Edit page - read-only & actions handled separately
+        return [];
+    }
 }
